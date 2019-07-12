@@ -29,10 +29,10 @@ import time
 import serial
 import smbus
 from ctypes import c_short
-from ctypes import c_byte
-from ctypes import c_ubyte
+#from ctypes import c_byte
+#from ctypes import c_ubyte
 import matplotlib.pyplot as plt
-import random
+#import random
 
 class bme280(object):
     """
@@ -81,6 +81,10 @@ class bme280(object):
         return (chip_id, chip_version)
 
     def read(self):
+        """
+        This method returns temperature, pressure and humidity
+        returns: (float, float, float)
+        """
         # Register Addresses
         REG_DATA = 0xF7
         REG_CONTROL = 0xF4
@@ -185,7 +189,6 @@ class senseair(object):
     """
     Class for Co2 sensor "senseair s8". It allows to readout the Co2 concentration.
     Link ----
-    
     """
     
     def __init__(self):
@@ -200,6 +203,7 @@ class senseair(object):
     def read(self):  
         """
         This method returns the Co2 concentration in ppm
+        returns float
         """
         self.ser.flushInput()
         self.ser.write(b"\xFE\x44\x00\x08\x02\x9F\x25")
@@ -218,10 +222,11 @@ class sensors(object):
         self.senseair_s8 = senseair()
         
 
-    def measure(self):
+    def read(self):
         """
-        This function reads out the sensors and adds them to the dataframe. The index is a timestamp index.
-        
+        Reads out both sensors. If no values are received, the values are set to None.
+        Returns Co2, Temperature and humidity
+        returns: (float, float, float)
         """ 
         try:
             co2=self.senseair_s8.read()
@@ -234,13 +239,13 @@ class sensors(object):
         except:
             temperature, pressure, humidity = (None, None, None)
 
-
         return (co2, temperature, humidity)
         
 
 def setting_up_dataframe(columns):
     """
-    Sets up a dataframe with a timestamp index and the columns temperature, humidity and Co2.
+    Sets up a dataframe with a timestamp index and the defined columns.
+    columns= List
     """
     
     df = pd.DataFrame(columns=columns, index=pd.to_datetime([]))
@@ -250,7 +255,7 @@ def setting_up_dataframe(columns):
 def harryplotter(df, outfilename):
     """
     Plots the collected data.
-    df = Dataframe
+    df = pd.Dataframe
     outfilename = filepath and Name
     """
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
@@ -298,10 +303,16 @@ def run_analysis():
     s=sensors()
     
     for i in range(0, m):
-        co2, temperature, humidity = s.measure()
-        df.loc[pd.Timestamp('now').strftime("%Y-%m-%d %H:%M:%S")] = [temperature, humidity, co2]
+        # Measuring Co2, temperature and humidity
+        co2, temperature, humidity = s.read()
+        # Writing the Data into the Dataframe
+        #df.loc[pd.Timestamp('now').strftime("%Y-%m-%d %H:%M:%S")] = [temperature, humidity, co2]
+        df.loc[pd.Timestamp('now')] = [temperature, humidity, co2]
+        # Producing a nice print statement:
+        
         now = pd.Timestamp('now').strftime("%Y-%m-%d %H:%M:%S")
         print("{}/{}, {}   {} ppm, {}°C, {}%".format(i+1, m, now, co2, temperature, humidity))
+        # waiting until next measurment
         time.sleep(t_sleep)
 
     # writing the dataframe to an excel file
@@ -312,7 +323,7 @@ def run_analysis():
 
 
 if __name__=="__main__":
-
+    # Let's run analysis
     run_analysis()
     
 
