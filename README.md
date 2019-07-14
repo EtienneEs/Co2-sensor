@@ -20,7 +20,7 @@ This Project is a collaboration with Reto Läderach.
 
 __References:__
 
-[1] [http://healthysleep.med.harvard.edu/healthy/]
+[1] http://healthysleep.med.harvard.edu/healthy/
 
 [2] Nattie, E. "CO2, brainstem chemoreceptors and breathing." Progress in neurobiology 59.4 (1999): 299-331.
 
