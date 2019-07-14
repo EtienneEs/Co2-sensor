@@ -27,6 +27,7 @@
 import time
 import serial
 import smbus
+import numpy as np # only for the np.Nan (float; vs: None = object)
 from ctypes import c_short
 #from ctypes import c_byte
 #from ctypes import c_ubyte
@@ -230,13 +231,13 @@ class sensors(object):
         try:
             co2=self.senseair_s8.read()
         except:
-            co2 = None
+            co2 = np.nan
         
         try:
             temperature,pressure,humidity = self.bme.read()
             humidity = round(humidity, 2)
         except:
-            temperature, pressure, humidity = (None, None, None)
+            temperature, pressure, humidity = (np.nan, np.nan, np.nan)
 
         return (co2, temperature, humidity)
         

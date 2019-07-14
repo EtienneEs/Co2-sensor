@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # ---------------------------------------------------------------
 # This Python Script reads out bme280 and senseair s8 sensors on
 # the Rasberry Pi3 for a (by User-defined) time. Once the data is
@@ -7,7 +7,8 @@
 # Note: Please make sure that you have the airsensors.py in the
 # same folder as this script.
 # ---------------------------------------------------------------
-
+import os
+import numpy as np # only for np.Nan values
 import pandas as pd
 import time
 from datetime import datetime
@@ -63,12 +64,20 @@ def run_analysis():
         z = int(input("For how many minutes do you want to take the measurements? (in min, only int)\n>"))
     except ValueError:
         z = int(input("Please insert an integer!\n For how many minutes do you want to measure\n>"))
-
+    
     # The time intervall between each measurments
     t_sleep = 1
     m = int(z * 60 / t_sleep)
-
-    outfilename = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_Measurments")
+    
+    # Establishing the current folder:
+    directory = os.path.dirname(os.path.realpath(__file__))
+    # Defining name of the destination folder
+    dest = os.path.join(directory, "Measurments")
+    # Testing if destination folder exists - if not create
+    if not os.path.exists(dest):
+        os.mkdir(dest)
+    # Defining the outfilename
+    outfilename = os.path.join(dest, datetime.now().strftime("%Y_%m_%d-%H_%M_%S_Measurments"))
 
     # setting up the Dataframe:
     df = setting_up_dataframe(["temperature", "humidity", "Co2(ppm)"])
@@ -79,11 +88,12 @@ def run_analysis():
     for i in range(0, m):
         # Measuring Co2, temperature and humidity
         co2, temperature, humidity = s.read()
-        # Writing the Data into the Dataframe
-        #df.loc[pd.Timestamp('now').strftime("%Y-%m-%d %H:%M:%S")] = [temperature, humidity, co2]
-        df.loc[pd.Timestamp('now')] = [temperature, humidity, co2]
-        # Producing a nice print statement:
         
+        # Writing the Data into the Dataframe
+        df.loc[pd.Timestamp('now').strftime("%Y-%m-%d %H:%M:%S")] = [temperature, humidity, co2]
+        #df.loc[pd.Timestamp('now')] = [temperature, humidity, co2]
+        # Producing a nice print statement:
+        print(df.iloc[:,:])
         now = pd.Timestamp('now').strftime("%Y-%m-%d %H:%M:%S")
         print("{}/{}, {}   {} ppm, {}°C, {}%".format(i+1, m, now, co2, temperature, humidity))
         # waiting until next measurment
